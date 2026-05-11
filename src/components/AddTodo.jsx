@@ -1,14 +1,18 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 
 export default function AddTodo({ onAdd }) {
   const [text, setText] = useState('')
+  const [period, setPeriod] = useState(() => {
+    const hour = new Date().getHours()
+    return hour < 12 ? 'morning' : 'afternoon'
+  })
   const [focused, setFocused] = useState(false)
   const inputRef = useRef(null)
 
   const handleSubmit = () => {
     const trimmed = text.trim()
     if (trimmed) {
-      onAdd(trimmed)
+      onAdd(trimmed, period)
       setText('')
     }
   }
@@ -25,6 +29,22 @@ export default function AddTodo({ onAdd }) {
 
   return (
     <div className={`add-todo ${focused ? 'focused' : ''}`}>
+      <div className="period-selector">
+        <button
+          className={`period-btn ${period === 'morning' ? 'active' : ''}`}
+          onClick={() => setPeriod('morning')}
+          title="上午"
+        >
+          上午
+        </button>
+        <button
+          className={`period-btn ${period === 'afternoon' ? 'active' : ''}`}
+          onClick={() => setPeriod('afternoon')}
+          title="下午"
+        >
+          下午
+        </button>
+      </div>
       <button className="add-btn" onClick={handleSubmit} title="添加待办">
         +
       </button>

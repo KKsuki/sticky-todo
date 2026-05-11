@@ -154,3 +154,22 @@ ipcMain.handle('window-minimize', (event) => {
 ipcMain.handle('window-close', (event) => {
   BrowserWindow.fromWebContents(event.sender)?.close()
 })
+
+// Memo handlers
+function getMemosFile() {
+  return path.join(DATA_DIR, 'memos.json')
+}
+
+ipcMain.handle('get-memos', () => {
+  const file = getMemosFile()
+  if (fs.existsSync(file)) {
+    return JSON.parse(fs.readFileSync(file, 'utf-8'))
+  }
+  return { memos: [] }
+})
+
+ipcMain.handle('save-memos', (_event, data) => {
+  const file = getMemosFile()
+  fs.writeFileSync(file, JSON.stringify(data, null, 2))
+  return true
+})

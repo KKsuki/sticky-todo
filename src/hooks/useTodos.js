@@ -48,11 +48,12 @@ export function useTodos() {
   )
 
   const addTodo = useCallback(
-    (text) => {
+    (text, period = 'morning') => {
       const newTodo = {
         id: generateId(),
         text,
         completed: false,
+        period,
         createdAt: new Date().toISOString(),
         order: todos.length,
       }

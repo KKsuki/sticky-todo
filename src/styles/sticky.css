@@ -189,10 +189,31 @@ body {
 /* ===== Drag Wrapper ===== */
 .drag-wrapper {
   margin-bottom: 2px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .drag-wrapper.dragging {
-  opacity: 0.85;
+  opacity: 0.9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+}
+
+/* Memo item text selection control */
+.memo-item {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.memo-item.editing {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.memo-item.editing input,
+.memo-item.editing textarea {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* ===== Todo Item ===== */
@@ -449,6 +470,51 @@ body {
   justify-content: center;
 }
 
+/* ===== Memo Group ===== */
+.memo-group {
+  margin-bottom: 4px;
+}
+
+.memo-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px 4px;
+  font-size: 12px;
+  color: #92400e;
+}
+
+.memo-group-icon {
+  font-size: 14px;
+}
+
+.memo-group-title {
+  font-weight: 600;
+}
+
+.memo-group-count {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-left: auto;
+}
+
+.memo-group-list {
+  min-height: 8px;
+  transition: background-color 0.2s;
+}
+
+.memo-group-list.dragging-over {
+  background-color: rgba(217, 119, 6, 0.05);
+  border-radius: 4px;
+}
+
+.memo-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #d97706, transparent);
+  margin: 8px 16px;
+  opacity: 0.4;
+}
+
 /* ===== Memo Item ===== */
 .memo-item {
   display: flex;
@@ -456,7 +522,7 @@ body {
   padding: 10px 8px;
   border-radius: 6px;
   transition: background 0.15s;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 8px;
   background: rgba(255, 255, 255, 0.3);
   border: 1px solid rgba(217, 119, 6, 0.2);
@@ -509,6 +575,70 @@ body {
   color: #a16207;
   margin-top: 6px;
   opacity: 0.7;
+}
+
+/* ===== Memo Drag Handle ===== */
+.memo-drag-handle {
+  width: 16px;
+  min-width: 16px;
+  color: #b45309;
+  opacity: 0.3;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: opacity 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.memo-item:hover .memo-drag-handle {
+  opacity: 0.6;
+}
+
+.memo-drag-handle:active {
+  cursor: grabbing;
+  opacity: 0.8;
+}
+
+/* ===== Memo Actions ===== */
+.memo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.memo-pin-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: 0;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  filter: grayscale(1);
+}
+
+.memo-item:hover .memo-pin-btn {
+  opacity: 0.6;
+}
+
+.memo-pin-btn:hover {
+  opacity: 1;
+  filter: grayscale(0);
+}
+
+.memo-pin-btn.pinned {
+  opacity: 0.8;
+  filter: grayscale(0);
 }
 
 .memo-delete-btn {

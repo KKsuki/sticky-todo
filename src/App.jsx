@@ -28,7 +28,9 @@ export default function App() {
     addMemo,
     updateMemo,
     deleteMemo,
-    reorderMemos,
+    togglePin,
+    reorderPinnedMemos,
+    reorderUnpinnedMemos,
   } = useMemos()
 
   const loading = activeView === 'todo' ? todoLoading : memoLoading
@@ -59,7 +61,9 @@ export default function App() {
               memos={memos}
               onUpdate={updateMemo}
               onDelete={deleteMemo}
-              onReorder={reorderMemos}
+              onTogglePin={togglePin}
+              onReorderPinned={reorderPinnedMemos}
+              onReorderUnpinned={reorderUnpinnedMemos}
             />
             <AddMemo onAdd={addMemo} />
           </>

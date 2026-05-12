@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function MemoItem({ memo, onUpdate, onDelete }) {
+export default function MemoItem({ memo, onUpdate, onDelete, onTogglePin, dragHandleProps }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(memo.title)
   const [editContent, setEditContent] = useState(memo.content)
@@ -68,6 +68,9 @@ export default function MemoItem({ memo, onUpdate, onDelete }) {
 
   return (
     <div className="memo-item">
+      <div className="memo-drag-handle" {...dragHandleProps}>
+        ⠿
+      </div>
       <div className="memo-content" onClick={() => setIsEditing(true)}>
         {memo.title && <div className="memo-title">{memo.title}</div>}
         {memo.content && <div className="memo-text">{memo.content}</div>}
@@ -76,13 +79,22 @@ export default function MemoItem({ memo, onUpdate, onDelete }) {
         )}
         <div className="memo-time">{formatDate(memo.updatedAt)}</div>
       </div>
-      <button
-        className="memo-delete-btn"
-        onClick={() => onDelete(memo.id)}
-        title="删除"
-      >
-        ✕
-      </button>
+      <div className="memo-actions">
+        <button
+          className={`memo-pin-btn ${memo.pinned ? 'pinned' : ''}`}
+          onClick={() => onTogglePin(memo.id)}
+          title={memo.pinned ? '取消置顶' : '置顶'}
+        >
+          📌
+        </button>
+        <button
+          className="memo-delete-btn"
+          onClick={() => onDelete(memo.id)}
+          title="删除"
+        >
+          ✕
+        </button>
+      </div>
     </div>
   )
 }

@@ -33,8 +33,75 @@ function getDateStr() {
   return `${y}-${m}-${d}`
 }
 
+// 获取月份文件夹名称，如 "2026年5月"
+function getMonthFolder(dateStr) {
+  const [year, month] = dateStr.split('-')
+  return `${year}年${parseInt(month)}月`
+}
+
+// 获取某天的数据文件路径
+function getDateFile(dateStr) {
+  const folder = getMonthFolder(dateStr)
+  const folderPath = path.join(DATA_DIR, folder)
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true })
+  }
+  return path.join(folderPath, `${dateStr}.json`)
+}
+
 function getTodayFile() {
-  return path.join(DATA_DIR, `${getDateStr()}.json`)
+  return getDateFile(getDateStr())
+}
+
+// 数据迁移：将旧格式文件迁移到新文件夹结构
+function migrateData() {
+  const files = fs.readdirSync(DATA_DIR)
+  const datePattern = /^\d{4}-\d{2}-\d{2}\.json$/
+  let migratedCount = 0
+
+  files.forEach(file => {
+    if (datePattern.test(file)) {
+      const dateStr = file.replace('.json', '')
+      const oldPath = path.join(DATA_DIR, file)
+      const newPath = getDateFile(dateStr)
+
+      if (!fs.existsSync(newPath)) {
+        const data = JSON.parse(fs.readFileSync(oldPath, 'utf-8'))
+        fs.writeFileSync(newPath, JSON.stringify(data, null, 2))
+        fs.unlinkSync(oldPath)
+        migratedCount++
+      }
+    }
+  })
+
+  if (migratedCount > 0) {
+    console.log(`[main] 迁移了 ${migratedCount} 个数据文件`)
+  }
+
+  // 更新 index.json，重建日期列表
+  rebuildIndex()
+}
+
+// 重建索引
+function rebuildIndex() {
+  const dates = []
+  const folders = fs.readdirSync(DATA_DIR)
+
+  folders.forEach(folder => {
+    const folderPath = path.join(DATA_DIR, folder)
+    if (fs.statSync(folderPath).isDirectory() && folder.includes('年')) {
+      const files = fs.readdirSync(folderPath)
+      files.forEach(file => {
+        if (file.endsWith('.json') && /^\d{4}-\d{2}-\d{2}\.json$/.test(file)) {
+          dates.push(file.replace('.json', ''))
+        }
+      })
+    }
+  })
+
+  dates.sort((a, b) => b.localeCompare(a))
+  const indexPath = path.join(DATA_DIR, 'index.json')
+  fs.writeFileSync(indexPath, JSON.stringify({ dates, dataPath: DATA_DIR }, null, 2))
 }
 
 function createWindow() {
@@ -96,6 +163,7 @@ process.on('uncaughtException', (err) => {
 app.whenReady().then(() => {
   console.log('[main] app ready')
   ensureIndexFile()
+  migrateData()
   createWindow()
 
   app.on('activate', () => {
@@ -119,13 +187,14 @@ ipcMain.handle('get-today-todos', () => {
 })
 
 ipcMain.handle('save-todos', (_event, data) => {
-  const file = path.join(DATA_DIR, `${data.date}.json`)
+  const file = getDateFile(data.date)
   fs.writeFileSync(file, JSON.stringify(data, null, 2))
 
   const indexPath = path.join(DATA_DIR, 'index.json')
   const index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
   if (!index.dates.includes(data.date)) {
     index.dates.unshift(data.date)
+    index.dates.sort((a, b) => b.localeCompare(a))
     fs.writeFileSync(indexPath, JSON.stringify(index, null, 2))
   }
   return true
@@ -140,7 +209,7 @@ ipcMain.handle('get-history', () => {
 })
 
 ipcMain.handle('get-todos-by-date', (_event, date) => {
-  const file = path.join(DATA_DIR, `${date}.json`)
+  const file = getDateFile(date)
   if (fs.existsSync(file)) {
     return JSON.parse(fs.readFileSync(file, 'utf-8'))
   }
@@ -153,6 +222,28 @@ ipcMain.handle('window-minimize', (event) => {
 
 ipcMain.handle('window-close', (event) => {
   BrowserWindow.fromWebContents(event.sender)?.close()
+})
+
+// 获取某个月份有待办的日期列表
+ipcMain.handle('get-month-dates', (_event, yearMonth) => {
+  // yearMonth 格式: "2026年5月"
+  const folderPath = path.join(DATA_DIR, yearMonth)
+  const dates = []
+
+  if (fs.existsSync(folderPath)) {
+    const files = fs.readdirSync(folderPath)
+    files.forEach(file => {
+      if (file.endsWith('.json') && /^\d{4}-\d{2}-\d{2}\.json$/.test(file)) {
+        const filePath = path.join(folderPath, file)
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+        if (data.todos && data.todos.length > 0) {
+          dates.push(file.replace('.json', ''))
+        }
+      }
+    })
+  }
+
+  return dates
 })
 
 // Memo handlers

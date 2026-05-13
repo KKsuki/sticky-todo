@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
+import CalendarView from './CalendarView'
 
 dayjs.locale('zh-cn')
 
@@ -18,17 +19,9 @@ function HistoryTodoItem({ todo }) {
 }
 
 export default function HistoryView({ onSelectDate, onBack }) {
-  const [dates, setDates] = useState([])
   const [selectedDate, setSelectedDate] = useState(null)
   const [todos, setTodos] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    window.electronAPI.getHistory().then((d) => {
-      setDates(d)
-      setLoading(false)
-    })
-  }, [])
+  const [loading, setLoading] = useState(false)
 
   const handleSelectDate = async (date) => {
     setLoading(true)
@@ -38,13 +31,9 @@ export default function HistoryView({ onSelectDate, onBack }) {
     setLoading(false)
   }
 
-  const handleBackToList = () => {
+  const handleBackToCalendar = () => {
     setSelectedDate(null)
     setTodos([])
-  }
-
-  if (loading) {
-    return <div className="history-view loading">加载中...</div>
   }
 
   // 显示某个日期的待办详情
@@ -58,8 +47,8 @@ export default function HistoryView({ onSelectDate, onBack }) {
     return (
       <div className="history-view">
         <div className="history-detail-header">
-          <button className="back-link" onClick={handleBackToList}>
-            ← 返回列表
+          <button className="back-link" onClick={handleBackToCalendar}>
+            ← 返回日历
           </button>
           <span className="history-detail-date">
             {d.month() + 1}月{d.date()}日 {weekDays[d.day()]}
@@ -124,44 +113,15 @@ export default function HistoryView({ onSelectDate, onBack }) {
     )
   }
 
-  // 显示日期列表
-  if (dates.length === 0) {
-    return (
-      <div className="history-view empty">
-        <div className="empty-hint">
-          <span className="empty-icon">📅</span>
-          <p>暂无历史记录</p>
-          <p className="empty-sub">完成一些待办后就会出现在这里</p>
-        </div>
-        <button className="back-btn" onClick={onBack}>
-          返回今天
-        </button>
-      </div>
-    )
+  // 显示日历
+  if (loading) {
+    return <div className="history-view loading">加载中...</div>
   }
 
   return (
-    <div className="history-view">
-      <div className="history-list">
-        {dates.map((date) => {
-          const d = dayjs(date)
-          return (
-            <button
-              key={date}
-              className="history-item"
-              onClick={() => handleSelectDate(date)}
-            >
-              <span className="history-date">
-                {d.month() + 1}月{d.date()}日
-              </span>
-              <span className="history-weekday">{weekDays[d.day()]}</span>
-            </button>
-          )
-        })}
-      </div>
-      <button className="back-btn" onClick={onBack}>
-        返回今天
-      </button>
-    </div>
+    <CalendarView
+      onSelectDate={handleSelectDate}
+      onBack={onBack}
+    />
   )
 }
